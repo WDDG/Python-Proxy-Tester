@@ -11,6 +11,10 @@
 
 - If your proxies are "ip:port:username:password" set the flag in proxy_tester.py
 
+- rename sites.dat.example and add your sites to that
+
+- renam proxies.dat.example and add your proxies to that
+
 -------------------------------------
 ## Modules Needed:
 * Requests
