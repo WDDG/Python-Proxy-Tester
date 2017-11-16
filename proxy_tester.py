@@ -36,7 +36,13 @@ def exit_tester(finished=False):
 # ip:port:username:pass -> username:pass@ip:port
 def convert_proxy_link(link):
     p = link.split(':')
-    return '{}:{}@{}:{}'.format(p[2],p[3],p[0],p[1])
+    if len(p) == 4:
+        return '{}:{}@{}:{}'.format(p[2],p[3],p[0],p[1])
+    elif len(p) == 3:
+        return '{}@{}:{}'.format(p[2],p[0],p[1])
+    elif len(p) == 2:
+        return '{}:{}'.format(p[0],p[1]) 
+    # return '{}:{}@{}:{}'.format(p[2],p[3],p[0],p[1])
 
 
 def print_break(text):
@@ -110,6 +116,7 @@ def sort(proxy, site, ):
     try:
         response = s.get(site)
         if response.status_code == 200:
+            # print response.history
             url = get_history(response.url, response.history)
             output = '[{}ms] {} ({}) -- OK ({})'.format(millis()-start, proxy, url, response.status_code)
             print '{}:{}'.format(url, response.status_code)
@@ -177,6 +184,7 @@ with open(site_list_file) as f:
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.28 Safari/537.36'}
 s = requests.session()
 s.headers.update(headers)
+s.trust_env=False
 
 
 if len(proxies) > 1:
