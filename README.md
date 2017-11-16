@@ -1,6 +1,5 @@
 # Python based Proxy Tester.
 ## Test your proxies.
-###### Developer: @bopped /// [My Twitter](https://twitter.com/Backdoorcook).
 
 ## Info:
 
@@ -25,7 +24,9 @@
 - If you get the error "SyntaxError: Missing parentheses in call to 'print'", this means you have Python 3 installed.
 
 ## Bugs:
-- DM me on twitter.
+- file a bug
+
+###### original Developer: @bopped /// [My Twitter](https://twitter.com/Backdoorcook).
 
 ###### Disclaimer:
 - In no way do I say "This is the best way to test proxies". 
