@@ -1,17 +1,26 @@
 # Proxy Tester.py
 # developer: @bopped /// twitter : @backdoorcook
-import requests, json, time, threading, sys, os, pprint, datetime, re
+import requests, json, time, threading, sys, os, pprint, datetime, re, fnmatch
 
 ### config stuff ###
 
 # proxy format for requests is user:pass@site:port
 # some sites output this as site:port:user:pass
 # if the proxies.dat is formatted that way - set the following to true
-convert_proxy_data = True
+proxy_format_url =  'user:pass@site:port'
+proxy_format_list = 'site:port:user:pass'
+proxy_data_format = proxy_format_list
+proxy_output_format = proxy_format_list
+convert_proxy_data = (proxy_data_format != proxy_format_url)
+
 proxy_list_file = 'proxies.dat'
 site_list_file = 'sites.dat'
 output_directory = 'output' # no trailing /
 timeout = 120 # in seconds
+
+export_working_proxies = True
+archive_old_exports = True
+working_proxies_file = '_working_proxies.dat'
 
 
 #Current Ms display
@@ -54,46 +63,138 @@ def line_separator(text):
     return "\n**************************************\n****  {}\n**************************************\n".format(text)
 
 def cmp_results(a,b):
-    lhs = int(re.search(r'\[(.+?)ms', a).group(1))
-    rhs = int(re.search(r'\[(.+?)ms', b).group(1))
+    lhs = extract_ms(a)
+    rhs = extract_ms(b)
     if a > b:
         return 1
     elif a == b:
         return 0
     else:
         return -1
-    
 
+
+def extract_ms(log):
+    return int(re.search(r'\[(.+?)ms', log).group(1))
+
+
+def extract_proxy(log):
+    return log.split(' ')[1]
+
+
+def format_proxy(proxy_url):
+    global proxy_output_format
+    proxy = get_proxy_from_url(proxy_url)
+
+    if proxy_output_format == proxy_format_url:
+        if proxy['pass'] != '' and proxy['user'] != '':
+            return "{}:{}@{}:{}".format(proxy['user'],proxy['pass'],proxy['url'],proxy['port'])
+        if proxy['user'] != '':
+            return "{}@{}:{}".format(proxy['user'],proxy['url'],proxy['port'])
+        return "{}:{}".format(proxy['url'],proxy['port'])
+    elif proxy_output_format == proxy_format_list:
+        parts = [p for p in proxy['url'],proxy['port'],proxy['user'],proxy['pass'] if p != '']
+        return ':'.join(parts)
+
+
+def get_proxy_from_url(url):
+    proxy = {
+        'user': '',
+        'pass': '',
+        'url': '',
+        'port': ''
+    }
+
+    if '@' in url:
+        parts = url.split('@')
+        lhs = parts[0]
+        if ':' in lhs:
+            credentials = lhs.split(':')
+            proxy['user'] = credentials[0]
+            proxy['pass'] = credentials[1]
+        else:
+            proxy['user'] = lhs
+        rhs = parts[1]
+    else:
+        rhs = url
+
+    path = rhs.split(':')
+    proxy['url'] = path[0]
+    proxy['port'] = path[1]
+
+    return proxy
+
+def organize_archive():
+    ## create /archive folder if we don't have it yet
+    archive_path = "{}/archive/".format(os.getcwd())
+    if not os.path.exists(archive_path):
+        os.makedirs(archive_path)
+
+    now = datetime.datetime.now()
+    iso_timestamp = '{}'.format(now.strftime("%Y-%m-%dT%H:%M:%S:{}")).format(now.microsecond)
+    # output_file = "{}/{}/{}.log".format(os.getcwd(), output_directory, iso_timestamp)
+
+    old_file = "{}/{}/{}".format(os.getcwd(), output_directory, working_proxies_file)
+    if os.path.exists(old_file):
+        new_file = "{}{}.{}".format(archive_path, working_proxies_file, iso_timestamp)
+        os.rename(old_file, new_file)
+
+    ## move the old .dat files to /archive
+    old_log_files = fnmatch.filter(os.listdir("{}/{}".format(os.getcwd(),output_directory)), '*.log')
+    # print old_log_files
+    for old_file_name in old_log_files:
+        old_file = "{}/{}/{}".format(os.getcwd(), output_directory, old_file_name)
+        new_file = "{}{}".format(archive_path, old_file_name)
+        os.rename(old_file, new_file)
 
 def print_results():
     global warnings_key, success_key, errors_key
+
     now = datetime.datetime.now()
-    # filename = '%s/%s/%s %s:%s:%s.%s'%(now.year,now.month,now.day,now.hour,now.minute,now.second,now.microsecond)
-    output_file = "{}/{}/{}".format(os.getcwd(), output_directory, now.strftime("%Y-%m-%dT%H:%M:%S:{}.dat")).format(now.microsecond)
+    iso_timestamp = '{}'.format(now.strftime("%Y-%m-%dT%H:%M:%S:{}")).format(now.microsecond)
+    output_file = "{}/{}/{}.log".format(os.getcwd(), output_directory, iso_timestamp)
+
+    if export_working_proxies and archive_old_exports:
+        organize_archive()
+
     with open(output_file, 'w') as f:
         f.write(line_separator('RESULTS'))
+
         for site, responses in results.iteritems():
             f.write(line_separator(site))
+            ## print successes ##
             if responses[success_key] != []:
                 f.write(line_separator(success_key))
                 responses[success_key].sort(cmp_results)
                 for success in responses[success_key]:
                     f.write("{}\n".format(success))
+
+                if export_working_proxies:
+                    output_proxies_file = "{}/{}/{}".format(os.getcwd(), output_directory, working_proxies_file)
+                    with open(output_proxies_file, 'a') as fp:
+                        for success in responses[success_key]:
+                            fp.write("{}\n".format(format_proxy(extract_proxy(success))))
+
+            ## print warnings ##
             if responses[warnings_key] != []:
                 f.write(line_separator(warnings_key))
                 responses[warnings_key].sort(cmp_results)
                 for warning in responses[warnings_key]:
                     f.write("{}\n".format(warning))
+            ## print errors ##
             if responses[errors_key] != []:
                 f.write(line_separator(errors_key))
                 responses[errors_key].sort(cmp_results)
                 for error in responses[errors_key]:
                     f.write("{}\n".format(error))
+
+        ## print timeouts ##
         if len(request_set) > 0:
             f.write(line_separator("timeouts"))
             for attempt in request_set:
                 f.write("{}\n".format(attempt))
-            
+    
+    
+
 
 def increment_active():
     global active

@@ -150,3 +150,5 @@ venv.bak/
 proxies.dat
 sites.dat
 output/*.dat
+output/*.log
+archive/
