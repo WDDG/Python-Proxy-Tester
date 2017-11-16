@@ -8,16 +8,17 @@
 ----- USER:PASS Auth'ed proxies -----
 - Proxies can be in "username:password@ip:port" or "ip:port:username:password" format. 
 
-- If your proxies are "ip:port:username:password" set the flag in proxy_tester.py
+- If your proxies are "ip:port:username:password" set the convert_proxy_data flag in proxy_tester.py to True
 
 - rename sites.dat.example and add your sites to that
 
-- renam proxies.dat.example and add your proxies to that
+- rename proxies.dat.example and add your proxies to that
+
+- output will be dumped into the output folder in ISO 8601 format
 
 -------------------------------------
 ## Modules Needed:
 * Requests
-
 
 ## Troubleshooting
 
@@ -26,7 +27,7 @@
 ## Bugs:
 - file a bug
 
-###### original Developer: @bopped /// [My Twitter](https://twitter.com/Backdoorcook).
+###### original Developer: [@bopped](https://twitter.com/Backdoorcook).
 
 ###### Disclaimer:
 - In no way do I say "This is the best way to test proxies". 
