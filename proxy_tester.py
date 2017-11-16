@@ -1,6 +1,6 @@
 # Proxy Tester.py
 # developer: @bopped /// twitter : @backdoorcook
-import requests, json, time, threading, sys, os, pprint, datetime
+import requests, json, time, threading, sys, os, pprint, datetime, re
 
 ### config stuff ###
 
@@ -11,7 +11,7 @@ convert_proxy_data = True
 proxy_list_file = 'proxies.dat'
 site_list_file = 'sites.dat'
 output_directory = 'output' # no trailing /
-timeout = 10 # in seconds
+timeout = 120 # in seconds
 
 
 #Current Ms display
@@ -53,6 +53,18 @@ def print_break(text):
 def line_separator(text):
     return "\n**************************************\n****  {}\n**************************************\n".format(text)
 
+def cmp_results(a,b):
+    lhs = int(re.search(r'\[(.+?)ms', a).group(1))
+    rhs = int(re.search(r'\[(.+?)ms', b).group(1))
+    if a > b:
+        return 1
+    elif a == b:
+        return 0
+    else:
+        return -1
+    
+
+
 def print_results():
     global warnings_key, success_key, errors_key
     now = datetime.datetime.now()
@@ -64,14 +76,17 @@ def print_results():
             f.write(line_separator(site))
             if responses[success_key] != []:
                 f.write(line_separator(success_key))
+                responses[success_key].sort(cmp_results)
                 for success in responses[success_key]:
                     f.write("{}\n".format(success))
             if responses[warnings_key] != []:
                 f.write(line_separator(warnings_key))
+                responses[warnings_key].sort(cmp_results)
                 for warning in responses[warnings_key]:
                     f.write("{}\n".format(warning))
             if responses[errors_key] != []:
                 f.write(line_separator(errors_key))
+                responses[errors_key].sort(cmp_results)
                 for error in responses[errors_key]:
                     f.write("{}\n".format(error))
         if len(request_set) > 0:
