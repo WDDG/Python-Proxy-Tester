@@ -152,3 +152,4 @@ sites.dat
 output/*.dat
 output/*.log
 archive/
+/test.py
