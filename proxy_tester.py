@@ -65,9 +65,9 @@ def line_separator(text):
 def cmp_results(a,b):
     lhs = extract_ms(a)
     rhs = extract_ms(b)
-    if a > b:
+    if lhs > rhs:
         return 1
-    elif a == b:
+    elif lhs == rhs:
         return 0
     else:
         return -1
