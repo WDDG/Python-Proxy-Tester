@@ -16,7 +16,7 @@ convert_proxy_data = (proxy_data_format != proxy_format_url)
 proxy_list_file = 'proxies.dat'
 site_list_file = 'sites.dat'
 output_directory = 'output' # no trailing /
-timeout = 120 # in seconds
+timeout = 20 # in seconds
 
 export_working_proxies = True
 archive_old_exports = True
