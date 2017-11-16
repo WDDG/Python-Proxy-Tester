@@ -76,8 +76,8 @@ def print_results():
                     f.write("{}\n".format(error))
         if len(request_set) > 0:
             f.write(line_separator("timeouts"))
-            for request in requests:
-                f.write("{}\n".format(request))
+            for attempt in request_set:
+                f.write("{}\n".format(attempt))
             
 
 def increment_active():
