@@ -147,6 +147,6 @@ venv.bak/
 
 # End of https://www.gitignore.io/api/macos,python,dropbox,visualstudiocode
 
-output/
 proxies.dat
 sites.dat
+output/*.dat
