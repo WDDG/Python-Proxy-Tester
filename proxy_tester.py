@@ -74,6 +74,10 @@ def print_results():
                 f.write(line_separator(errors_key))
                 for error in responses[errors_key]:
                     f.write("{}\n".format(error))
+        if len(request_set) > 0:
+            f.write(line_separator("timeouts"))
+            for request in requests:
+                f.write("{}\n".format(request))
             
 
 def increment_active():
@@ -114,6 +118,8 @@ def sort(proxy, site, ):
     start = millis()
 
     try:
+        request_id = "{}:{}".format(proxy,site) 
+        request_set.add(request_id)
         response = s.get(site)
         if response.status_code == 200:
             # print response.history
@@ -121,16 +127,19 @@ def sort(proxy, site, ):
             output = '[{}ms] {} ({}) -- OK ({})'.format(millis()-start, proxy, url, response.status_code)
             print '{}:{}'.format(url, response.status_code)
             add_response(success_key, site, output)
+            request_set.discard(request_id)
 
         elif response.status_code != 200:
             output = '[{}ms] {} ({}) -- Status ({}:{})'.format(millis()-start, proxy, site, response.status_code, response.reason)
             print '{}:{}'.format(site, response.reason)
             add_response(warnings_key, site, output)
+            request_set.discard(request_id)
 
     except Exception as e:
         print '{}:{} -- Error'.format(site, proxy)
         output = '[{}ms] {} {} Got an error:\n{}' .format(millis()-start, proxy, site, e)
         add_response(errors_key, site, output)
+        request_set.discard(request_id)
     
     decrement_active()
 
@@ -164,6 +173,7 @@ timer = threading.Timer(timeout, exit_tester)
 timer.start()
 
 proxies = []
+request_set = set()
 
 with open(proxy_list_file) as f:
     lines = f.readlines()
