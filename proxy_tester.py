@@ -171,6 +171,7 @@ def print_results():
                 if export_working_proxies:
                     output_proxies_file = "{}/{}/{}".format(os.getcwd(), output_directory, working_proxies_file)
                     with open(output_proxies_file, 'a') as fp:
+                        f.write(line_separator(site))
                         for success in responses[success_key]:
                             fp.write("{}\n".format(format_proxy(extract_proxy(success))))
 
